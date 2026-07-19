@@ -133,6 +133,9 @@ class SessionCreateParams(ProfileParams):
     hidden: bool = False
     room_plumbing: bool = False
     follow_profile_config: bool = False
+    # #65410: stable caller-chosen key so a retried create (response lost in
+    # transit) returns the SAME session instead of a duplicate child.
+    idempotency_key: str | None = None
 
 
 class SessionCreateResult(Result):
