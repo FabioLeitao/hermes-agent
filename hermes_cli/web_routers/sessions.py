@@ -586,10 +586,36 @@ def _session_files_dir(profile) -> Path:
     return _history_profile_home(profile) / "sessions"
 
 
+def _is_untyped_scaffold_notice(message) -> bool:
+    """A ``[System: …]`` role=user row persisted without a ``display_kind``.
+
+    ``[System:`` is a reserved gateway-notice namespace — it must never render as a user
+    bubble (the gateway's own history projection drops these rows outright) — but recovery
+    scaffolding written before typing existed carries no kind. Rows WITH a kind
+    (``model_switch``, …) are timeline entries and keep flowing.
+    """
+    if not isinstance(message, dict) or message.get("role") != "user" or message.get("display_kind"):
+        return False
+    content = message.get("content")
+    return isinstance(content, str) and content.lstrip().startswith("[System:")
+
+
 def _project_for_display(messages: list, *, home=None, inline_images: bool = True) -> list:
+    """Replace compaction summaries with their display-only projection and hide untyped
+    gateway-scaffold notices.
+
+    Recovery scaffolding (e.g. the stream-timeout nudge appended when a tool call's stream
+    is cut) persists as a ``[System: …]`` ``role=user`` row with no ``display_kind``. This
+    projection feeds the Desktop's transcript prefetch, which addresses VISIBLE user rows by
+    durable row id — and the gateway truncation resolver refuses scaffold rows fail-closed,
+    so a shipped scaffold row can never resolve as a rewind/regenerate target and dead-ends
+    every retry (``refusing truncation without fallback``). Hide them the same way the
+    Desktop collapses other display-only rows; typed notices stay for the timeline.
+    """
     from agent.compaction_display import project_compaction_message_for_display
     from agent.context_compressor import is_compaction_summary_message
     from agent.history_commentary import project_history_commentary
+    from agent.prompt_builder import STEER_DISPLAY_KIND
     from agent.turn_failure_copy import untyped_failed_turn_display_kind
 
     # inline_images=False (#116511): render content through the gateway's ``_coerce_message_text``
@@ -614,6 +640,23 @@ def _project_for_display(messages: list, *, home=None, inline_images: bool = Tru
             message.get("role"), message.get("content"))
         if failed_turn:
             message = {**message, "display_kind": failed_turn}
+        if _is_untyped_scaffold_notice(message):
+            projected = message.copy()
+            projected["display_kind"] = "hidden"
+            projected_messages.append(projected)
+            continue
+        # Mid-turn /steer: display the user's own words, not the model-facing marker wrapper —
+        # the same unwrap session.resume applies (tui_gateway/session_history.py), so the REST row
+        # pairs with the optimistic plain-text copy instead of shipping marker-wrapped and
+        # rendering twice on refresh (#121978).
+        if message.get("role") == "user" and message.get("display_kind") == STEER_DISPLAY_KIND:
+            from agent.conversation_compression import _extract_steer_text_from_message
+            steer_text = _extract_steer_text_from_message(message)
+            if steer_text is not None:
+                projected = message.copy()
+                projected["display_content"] = steer_text
+                projected_messages.append(projected)
+                continue
         if not is_compaction_summary_message(message):
             projected_messages.append(message)
             continue
