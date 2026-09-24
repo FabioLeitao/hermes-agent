@@ -158,6 +158,8 @@ interface ModelCatalogMenuProps {
   controller: ModelMenuController
   /** Rows appended under the catalog (Refresh Models, Edit Models, …). */
   footer?: ReactNode
+  /** Rows above the search, outside the keyboard list (the local-setup offer). */
+  header?: ReactNode
   gateway?: HermesGateway
   /** Owner-routed RPC for catalog reads. Preferred over `gateway.request` so
    *  a tile's menu queries the session owner's backend, not chrome's. */
@@ -191,6 +193,7 @@ interface ProviderGroup {
 export function ModelCatalogMenu({
   controller,
   footer,
+  header,
   gateway,
   includeMoa = false,
   ownerConnectionId,
@@ -591,6 +594,7 @@ export function ModelCatalogMenu({
 
   return (
     <>
+      {header}
       <DropdownMenuSearch
         aria-label={copy.search}
         onKeyDown={event => {

@@ -3942,6 +3942,11 @@ export const en: Translations = {
     editingQueuedInComposer: 'Editing queued turn in composer',
     restoredDraftNotice: 'Restored your unsent message',
     restoredDraftUndo: 'Undo',
+    localSetup: {
+      title: 'This could run on your computer',
+      text: (model: string) => `${model} fits this machine. Free, and chats stay on your computer.`,
+      action: 'Show me'
+    },
     queueEdit: 'Edit',
     queueExpand: 'Expand',
     queueCollapse: 'Collapse',
@@ -4357,7 +4362,10 @@ export const en: Translations = {
     sessionsText:
       'This list belongs to the default profile. New session starts one on whichever profile is selected. Switch profiles on the rail and the list changes with it.',
     stayTitle: 'Hermes is one click away',
-    stayText: 'Switch to the setup profile and open Welcome to Hermes whenever you want a hand. It stays there.'
+    stayText: 'Switch to the setup profile and open Welcome to Hermes whenever you want a hand. It stays there.',
+    localTitle: 'This machine can run models locally',
+    localText: (model: string) =>
+      `${model} fits your hardware. It runs free, and chats never leave your computer. Pick it here, in the model menu, whenever you want.`
   },
   appTour: {
     sessions: { title: 'Your chats', text: 'Every conversation lives here. Search, pin or reopen any of them.' },
@@ -4655,7 +4663,12 @@ export const en: Translations = {
       free: 'free',
       cacheRead: 'cached read',
       priceTitle: (input: string, output: string, cache: string) =>
-        `Input ${input}/Mtok · Output ${output}/Mtok` + (cache ? ` · Cached read ${cache}/Mtok` : '')
+        `Input ${input}/Mtok · Output ${output}/Mtok` + (cache ? ` · Cached read ${cache}/Mtok` : ''),
+      localSetup: {
+        title: 'Run locally · free, private',
+        text: (model: string, size: string) => `${model} fits this machine · ${size} download`,
+        action: 'Set up'
+      }
     },
     modelOptions: {
       noOptions: 'No options for this model',
@@ -5681,11 +5694,6 @@ export const en: Translations = {
         title: 'A local engine update is available',
         text: 'Update the engine that runs your local models. Active local requests may be interrupted.',
         action: 'Update now'
-      },
-      'local-setup': {
-        title: 'This machine can run models locally',
-        text: 'Your hardware can serve a local model. Chats stay on your computer and cost nothing.',
-        action: 'Set it up'
       },
       'right-pane': {
         title: 'The working pane',

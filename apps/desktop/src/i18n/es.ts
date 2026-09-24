@@ -4314,6 +4314,11 @@ export const esOverrides = {
     editingQueuedInComposer: 'Editando turno en cola en el compositor',
     restoredDraftNotice: 'Se restauró tu mensaje sin enviar',
     restoredDraftUndo: 'Deshacer',
+    localSetup: {
+      title: 'Esto podría ejecutarse en tu ordenador',
+      text: (model: string) => `${model} cabe en este equipo. Gratis, y los chats se quedan en tu ordenador.`,
+      action: 'Muéstrame'
+    },
     queueEdit: 'Editar',
     queueExpand: 'Expandir',
     queueCollapse: 'Contraer',
@@ -4728,6 +4733,9 @@ export const esOverrides = {
     }
   },
   handoffTour: {
+    localTitle: 'Este equipo puede ejecutar modelos localmente',
+    localText: (model: string) =>
+      `${model} encaja con tu hardware. Funciona gratis y los chats nunca salen de tu ordenador. Elígelo aquí, en el menú de modelos, cuando quieras.`,
     profileTitle: 'Tu primera tarea se ejecuta en el perfil predeterminado',
     profileText:
       'Esta barra cambia de perfil. El que está iluminado ahora es el predeterminado, donde está la sesión de la tarea. El otro es el perfil de configuración, donde está el chat de bienvenida.',
@@ -5030,7 +5038,12 @@ export const esOverrides = {
       free: 'gratis',
       cacheRead: 'lectura en caché',
       priceTitle: (input: string, output: string, cache: string) =>
-        `Entrada ${input}/Mtok · Salida ${output}/Mtok` + (cache ? ` · Lectura en caché ${cache}/Mtok` : '')
+        `Entrada ${input}/Mtok · Salida ${output}/Mtok` + (cache ? ` · Lectura en caché ${cache}/Mtok` : ''),
+      localSetup: {
+        title: 'Ejecutar en local · gratis, privado',
+        text: (model: string, size: string) => `${model} cabe en este equipo · descarga de ${size}`,
+        action: 'Configurar'
+      }
     },
     modelOptions: {
       noOptions: 'No hay opciones para este modelo',
@@ -6146,11 +6159,6 @@ export const esOverrides = {
         title: 'Hay una actualización del motor local',
         text: 'Actualiza el motor que ejecuta tus modelos locales. Las solicitudes locales activas pueden interrumpirse.',
         action: 'Actualizar ahora'
-      },
-      'local-setup': {
-        title: 'Este equipo puede ejecutar modelos localmente',
-        text: 'Tu hardware puede servir un modelo local. Los chats se quedan en tu equipo y no cuestan nada.',
-        action: 'Configurarlo'
       },
       'right-pane': {
         title: 'El panel de trabajo',
