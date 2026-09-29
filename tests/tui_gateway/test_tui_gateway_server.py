@@ -7071,14 +7071,11 @@ def test_prompt_submit_resolves_row_id_absorbed_into_marker_merge(monkeypatch):
     def _fake_session_db(_session):
         yield _FakeDB()
 
-    # Live history as it looks after a session restore: the durable
-    # transcript reloaded WITHOUT row-id stamps (restore doesn't request
-    # them), so resolution must go through the durable fallback.
-    live = [
-        {"role": "user", "content": "first"},
-        {"role": "assistant", "content": "reply 1"},
-        {"role": "user", "content": repaired[2]["content"]},
-    ]
+    # Live history as a RUNNING session holds it after a turn rewrite: the
+    # repaired, merged shape with row-id stamps still attached (the live
+    # dicts carry them), so the in-memory lookup resolves directly.
+    live = copy.deepcopy(repaired)
+    assert live[2]["_row_id"] == 12135
     server._sessions["merged-marker-sid"] = _session(history=list(live))
     monkeypatch.setattr(server, "_session_db", _fake_session_db)
     monkeypatch.setattr(server, "_get_db", lambda: _FakeDB())

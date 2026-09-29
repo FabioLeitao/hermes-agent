@@ -116,13 +116,17 @@ def test_repair_plain_user_then_marker_stays_addressable():
     repairs = AIAgent._repair_message_sequence(agent, messages)
 
     assert repairs == 1
-    assert messages == [
-        {
-            "role": "user",
-            "_row_id": 12134,
-            "content": "the user's real prompt\n\n[System: The active model for this chat has changed to ds4.]",
-        }
-    ]
+    assert len(messages) == 1
+    survivor = messages[0]
+    # The plain row keeps its own identity; the marker's id is retired onto
+    # the absorbed list and no display classification is resurrected.
+    assert survivor["role"] == "user"
+    assert survivor["_row_id"] == 12134
+    assert not survivor.get("display_kind")
+    assert survivor["content"] == (
+        "the user's real prompt\n\n[System: The active model for this chat has changed to ds4.]"
+    )
+    assert 12135 in (survivor.get("_absorbed_row_ids") or [])
 
 
 def test_repair_does_not_rewind_ongoing_dialog_tool_pair():
