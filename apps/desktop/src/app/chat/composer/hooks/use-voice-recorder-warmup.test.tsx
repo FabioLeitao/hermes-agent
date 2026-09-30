@@ -27,7 +27,13 @@ const micHandle = {
 }
 
 vi.mock('./use-mic-recorder', () => ({
-  useMicRecorder: () => ({ handle: micHandle, level: 0, get recording() { return recording } })
+  useMicRecorder: () => ({
+    handle: micHandle,
+    level: 0,
+    get recording() {
+      return recording
+    }
+  })
 }))
 
 const syncSttLeaseSpy = vi.fn(async (..._args: unknown[]): Promise<void> => undefined)

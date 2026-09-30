@@ -46,8 +46,12 @@ vi.mock('@/lib/thinking-sound', () => ({
 
 vi.mock('@/lib/speech-text', () => ({
   IncrementalSpeechSentenceBuffer: class {
-    append() { return [] }
-    flush() { return [] }
+    append() {
+      return []
+    }
+    flush() {
+      return []
+    }
   }
 }))
 
