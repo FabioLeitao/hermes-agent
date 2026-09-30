@@ -4,7 +4,6 @@ import { DEMO_LAYOUT_ID } from '@/app/contrib/layout-presets'
 import { PANE_TOGGLE_REVEAL_EVENT } from '@/components/pane-shell'
 import { $activePresetId } from '@/components/pane-shell/tree/store'
 import { TIP_CATALOG } from '@/lib/tips/catalog'
-import { LOCAL_SETUP_TIP_ID } from '@/lib/tips/local-cta'
 import { $sidebarOpen, CHAT_SIDEBAR_PANE_ID } from '@/store/layout'
 import { notify } from '@/store/notifications'
 import { $onboardingGate, $setupProfileName, completeGuide, leaveGuide, skipGuide } from '@/store/onboarding-gate'
@@ -123,8 +122,8 @@ export function skipIntro(): void {
 
   notify({ kind: 'info', message: 'Switching you over to your default profile' })
   skipGuide()
-  // Skip stops the rest of the first run: the tutorial tips and the local-model tip.
-  retireTips([...TIP_CATALOG.map(tip => tip.id), LOCAL_SETUP_TIP_ID])
+  // Skip stops the tutorial tips. The local-setup offer still arms: its card waits for a finished task.
+  retireTips(TIP_CATALOG.map(tip => tip.id))
   selectProfile(launch?.profile ?? 'default')
 }
 

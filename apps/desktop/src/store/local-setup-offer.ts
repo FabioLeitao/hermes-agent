@@ -30,10 +30,9 @@ import { Codecs, persistentAtom } from '@/lib/persisted'
 import { readKey } from '@/lib/storage'
 import type { LocalCatalogModel, LocalModelsStatus } from '@/types/hermes'
 
-import { hasSeenIntroReveal } from './intro-reveal'
 import { $localModelsEnabled } from './local-models-flag'
 import { $desktopOnboarding } from './onboarding'
-import { $onboardingGate, type OnboardingPhase } from './onboarding-gate'
+import { $onboardingGate, $onboardingStateRead, type OnboardingPhase } from './onboarding-gate'
 import { $connection } from './session'
 import { $retiredTips } from './tips'
 
@@ -232,9 +231,9 @@ function transition(state: LocalSetupOfferState, patch: Partial<OfferRecord>): v
   setRecord({ ...$localSetupOffer.get(), ...patch, at: new Date().toISOString(), state })
 }
 
-/** The guide will not run for this identity: film seen already, or "choose a provider later". */
+/** The guide will not run for this identity: `onboarding.state` answered without starting it, or "choose a provider later". */
 function guideWillNotStart(): boolean {
-  return hasSeenIntroReveal() || $desktopOnboarding.get().firstRunSkipped
+  return $onboardingStateRead.get() || $desktopOnboarding.get().firstRunSkipped
 }
 
 /**
@@ -262,11 +261,14 @@ function armFromPhase(phase: OnboardingPhase): void {
 
 $onboardingGate.subscribe(gate => armFromPhase(gate.phase))
 $desktopOnboarding.listen(() => armFromPhase($onboardingGate.get().phase))
+$onboardingStateRead.listen(() => armFromPhase($onboardingGate.get().phase))
 
 interface TurnCompleteSignal {
   /** Anything but a completed turn: errored, interrupted, cancelled. */
   failed: boolean
   sessionId: null | string
+  /** A turn of the setup chat itself (its closing words after `start_chat`). */
+  setupChat: boolean
 }
 
 /**
@@ -275,8 +277,18 @@ interface TurnCompleteSignal {
  * it), so this is the end of a task, not a step in one. Turns that did not
  * complete do not count; the caller only reports the session on screen.
  */
-export function reportLocalSetupTurnComplete({ failed, sessionId }: TurnCompleteSignal): void {
-  if (failed || !sessionId || $localSetupOffer.get().state !== 'armed') {
+export function reportLocalSetupTurnComplete({ failed, sessionId, setupChat }: TurnCompleteSignal): void {
+  const offer = $localSetupOffer.get()
+
+  if (failed || !sessionId || setupChat || offer.state !== 'armed') {
+    return
+  }
+
+  // The task chat that setup hands off to speaks first: its opening turn asks which direction to take.
+  // That question is not a finished task, so the card waits for the next completed turn.
+  if (offer.armedBy === 'onboarding:done' && offer.sessionId === null) {
+    transition('armed', { sessionId })
+
     return
   }
 

@@ -1,6 +1,7 @@
 import type { BillingBlock } from '@hermes/shared'
 
 import { burstVibeHearts } from '@/components/chat/vibe-hearts'
+import { $chatOnboardingThreadIds } from '@/components/onboarding-chat/assembly'
 import { reportFirstBuildTurnComplete } from '@/components/onboarding-chat/first-build'
 import { translateNow } from '@/i18n'
 import { coerceGatewayText, coerceThinkingText } from '@/lib/chat-runtime'
@@ -17,6 +18,7 @@ import { clearAllPrompts } from '@/store/prompts'
 import { providerWaitText, setSessionProviderWait } from '@/store/provider-wait'
 import { setCurrentUsage, setTurnStartedAt } from '@/store/session'
 import { refreshSupportedSessionControlAfterTurn } from '@/store/session-control'
+import { storedSessionIdForRuntimeId } from '@/store/session-states'
 import { pruneFinishedSessionSubagents } from '@/store/subagents'
 import { clearActiveSessionTodos } from '@/store/todos'
 
@@ -385,7 +387,14 @@ export function handleMessageStreamEvent(ctx: GatewayEventContext): boolean {
     // The whole agent loop has returned: the end of a task, not a step in one.
     // Only the session on screen counts, which drops subagent mirrors (child ids).
     if (isActiveEvent) {
-      reportLocalSetupTurnComplete({ failed: payload?.status !== 'complete', sessionId })
+      const setupThreads = $chatOnboardingThreadIds.get()
+      const storedId = storedSessionIdForRuntimeId(sessionId)
+
+      reportLocalSetupTurnComplete({
+        failed: payload?.status !== 'complete',
+        sessionId,
+        setupChat: setupThreads.includes(sessionId) || (storedId !== null && setupThreads.includes(storedId))
+      })
     }
 
     // Structured billing wall forwarded by the gateway (out of credits /
